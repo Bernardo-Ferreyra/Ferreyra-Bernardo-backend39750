@@ -5,6 +5,19 @@ class ProductManager {
     this.products = [];
     this.path = filePath;
     this.lastId = 1
+    try {
+      if (fs.existsSync(this.path)) {
+      const jsonFile = fs.readFileSync(this.path, 'utf-8');
+      const data = JSON.parse(jsonFile)
+      this.products = data
+      } else {
+      fs.writeFileSync(this.path, JSON.stringify(this.products),'utf-8')
+      }
+      
+    } catch (err) {
+      console.log(err) 
+    }
+      
   }
   
   readProducts = async () => {
@@ -14,22 +27,13 @@ class ProductManager {
 
   getProducts = async () => {
     try {
-      if (fs.existsSync(this.path)) {
-        const data = await this.readProducts()
-        return console.log(data);
-      } else {
-        fs.promises.writeFile(this.path,JSON.stringify(this.products),"utf-8")
-        return console.log(this.products)
-      }
-    } 
-    catch (err) {
+      console.log(this.products)
+    } catch (err) {
       console.log(err);
     }
   };
 
-
   addProduct = async (title ,description ,price ,thumbnail ,code ,stock) => {
-    this.products = await this.readProducts();
     try {
       const newProduct = {
         title,
@@ -51,33 +55,29 @@ class ProductManager {
           this.lastId = this.products[this.products.length - 1].id + 1;
         }
         this.products.push({ id: this.lastId, ...newProduct });
-
         await fs.promises.writeFile(this.path,JSON.stringify(this.products, "utf-8", "\t"));
         console.log("Producto agregado.");
-        this.lastId++;
       }
-    } 
-    catch (err) {
+
+    } catch (err) {
       console.log(err);
     }
   };
 
+
   getProductById = async (id) => {
     try{
-      let dataProduct = await this.readProducts();
-      let existingId = dataProduct.find((product) => product.id === id);
+      let existingId = this.products.find((product) => product.id === id);
       return existingId? console.log(existingId) : console.log(`El producto con ID ${id} no existe.`);
-    } 
-    catch (err){
+    } catch (err){
       console.log(err)
     }
   };
 
   deleteProduct = async (id) => {
     try{
-      let dataProduct = await this.readProducts();
-      const productIndex = dataProduct.findIndex((product) => product.id === id);
-      const productsFilter = dataProduct.filter((product) => product.id !== id);
+      const productIndex = this.products.findIndex((product) => product.id === id);
+      const productsFilter = this.products.filter((product) => product.id !== id);
       
       if (productIndex === -1) {
         return console.log(`El producto con ID ${id} no existe.`);
@@ -85,16 +85,15 @@ class ProductManager {
         await fs.promises.writeFile(this.path,JSON.stringify(productsFilter, "utf-8", "\t"));
         console.log(`El producto con ID ${id} ha sido eliminado correctamente.`);
       }
-    } 
-    catch (err){
+      
+    } catch (err){
       console.log(err)
     }
   };
 
   updateProduct = async ({ id, ...obj }) => {
     try {
-      let dataProduct = await this.readProducts();
-      const productIndex = dataProduct.findIndex((product) => product.id === id);
+      const productIndex = this.products.findIndex((product) => product.id === id);
   
       if (productIndex === -1) {
         return console.log(`El producto con ID ${id} no existe.`);
@@ -105,11 +104,11 @@ class ProductManager {
         await fs.promises.writeFile(this.path, JSON.stringify(productModify, "utf-8", "\t"));
         console.log(`El producto con ID ${id} ha sido modificado y agregado`);
       }
-    } 
-    catch (err) {
+    } catch (err) {
       console.log(err);
     }
   };
+
 }
 
 
@@ -132,26 +131,43 @@ const testing = new ProductManager("./productos.json");
   "sin imagen",
   "abc123",
   25
-); */
+);
 
-/* testing.addProduct(
+testing.addProduct(
   "producto de prueba 2",
   "este es unproducto de prueba 2",
   2002,
   "sin imagen2",
   "abc1234",
   252
+);  
+testing.addProduct(
+  "producto de prueba 3",
+  "este es unproducto de prueba 3",
+  2003,
+  "sin imagen3",
+  "abc12345",
+  252
+);  
+testing.addProduct(
+  "producto de prueba 4",
+  "este es unproducto de prueba 4",
+  2003,
+  "sin imagen3",
+  "abc123456",
+  252
 ); */  
 
 
-// *TEST3* se llama al metodo getProduct mostrando el objeto agregado
+// *TEST3* se llama al metodo getProduct mostrando los productos
 
 /* testing.getProducts()  */
 
 
 // *TEST4* se llama al metodo getProductById muestra el objeto por id si no existe devuelve error
 
-/*  testing.getProductById() */
+ /* testing.getProductById(3) */
+
 
 
 // *TEST5* actualiza el producto sin perder el id
